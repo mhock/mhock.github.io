@@ -1,11 +1,11 @@
 ﻿// Uses the New York Times COVID data: https://github.com/nytimes/covid-19-data
-String[] file = loadStrings("us-states.csv"); // read file data into array of Strings, one per line
+String[] file = loadStrings("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv"); // read file data into array of Strings, one per line
 int stateCount = 55;
-int[][] newCases = new int[stateCount][365]; // allow storing 1 year of data for all 54 "states"
+int[][] newCases = new int[stateCount][1000]; // allow storing 1000 days of data for all 54 "states"
 String[] states = new String[stateCount];
 int currentState = 0;
 for (int i = 1; i < file.length; i++) {
-    String[] data = split(file[i],",");              // split the one line into individual data elements
+    String[] data = split(file[i],","); // split the one line into individual data elements
     if (data[0].equals("2020-12-01")) { // a date when every state has data
         states[currentState] = data[1]; // Fill in the states array
         currentState = currentState + 1;
