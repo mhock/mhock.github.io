@@ -1,3 +1,4 @@
+<style> .main-content { max-width: none; } </style>
 ## Demonstration of Processo
 <iframe src="procmin.html" width="100%" style="height: 50vh"></iframe>
 
