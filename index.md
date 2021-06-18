@@ -1,5 +1,5 @@
 ## Demonstration of Processo
-<iframe src="procmin.html" width="100%" style="height: 80%"></iframe>
+<iframe src="procmin.html" width="100%" style="height: 50vh"></iframe>
 
 # Documentation
 [Processo Reference](processoreference.pdf)
