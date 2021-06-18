@@ -1,0 +1,104 @@
+﻿// Uses the New York Times COVID data: https://github.com/nytimes/covid-19-data
+String[] file = loadStrings("us-states.csv"); // read file data into array of Strings, one per line
+int stateCount = 55;
+int[][] newCases = new int[stateCount][365]; // allow storing 1 year of data for all 54 "states"
+String[] states = new String[stateCount];
+int currentState = 0;
+for (int i = 1; i < file.length; i++) {
+    String[] data = split(file[i],",");              // split the one line into individual data elements
+    if (data[0].equals("2020-12-01")) { // a date when every state has data
+        states[currentState] = data[1]; // Fill in the states array
+        currentState = currentState + 1;
+    }
+}
+
+size(2*365, 400);
+// Each state has its own notion of which day is being filled in, etc.
+int[] currentDay = new int[stateCount]; // the next array location that will be filled in...
+int[] prevTotalCases = new int[stateCount];
+int[] maxCases = new int[stateCount];
+// We can sum up all the cases for a given state
+for (int i = 1; i < file.length; i++) {
+    String[] data = split(file[i],",");              // split the one line into individual data elements
+    for (currentState = 0; currentState < states.length; currentState++) { // Find the current state!
+        if (data[1].equals(states[currentState])) {
+            break; // Found the current state!
+        }
+    }
+    // println(data); // for debug purposes, uncomment (fills up console!)
+    // Update the new cases for the current state
+    newCases[currentState][currentDay[currentState]] = toInt(data[3]) - prevTotalCases[currentState];
+    // Decide if we have a new maximum for the current state
+    if (newCases[currentState][currentDay[currentState]] > maxCases[currentState]) {
+        maxCases[currentState] = newCases[currentState][currentDay[currentState]]; // update the maximum number of cases seen
+    }
+    // Advance the day for the current state
+    currentDay[currentState] = currentDay[currentState] + 1; // advance the day
+    // Remember the previous cases for the current state
+    prevTotalCases[currentState] = toInt(data[3]);
+}
+currentState = 0;
+int secondState = 1;
+void mousePressed() {
+    if (mouseY < 20) {
+        currentState = currentState + 1;
+        if (currentState == stateCount) {
+            currentState = 0;
+        }
+    } else {
+        secondState = secondState + 1;
+        if (secondState == stateCount) {
+            secondState = 0;
+        }
+    }
+}
+
+void draw() {
+    background(rgb(255,255,255));
+    strokeWeight(1);
+    //println(maxCases); // the largest number of cases seen on a given day
+    int maxOverall = max(maxCases[currentState], maxCases[secondState]);
+    int o = currentDay[currentState] - currentDay[secondState];
+    for (int i = 3; i < currentDay[currentState]-3; i++) {
+        double sum = 0;
+        for (int j = -3; j <= 3; j++) {
+            sum = sum + newCases[currentState][i+j]; // add up the 3 points before and after the center with the center
+        }
+        //stroke(rgb(0,0,0));
+        //line(2*i, height, 2*i, height-newCases[currentState][i]*height/maxCases[currentState]);
+        
+        stroke(rgb(255,0,0));
+        if (o < 0) {
+            line(2*(i-o), height, 2*(i-o), height-sum/7.0*height/maxOverall);            
+        } else {
+            line(2*i, height, 2*i, height-sum/7.0*height/maxOverall);
+        }
+    }
+
+    for (int i = 3; i < currentDay[secondState]-3; i++) {
+        double sum = 0;
+        for (int j = -3; j <= 3; j++) {
+            sum = sum + newCases[secondState][i+j]; // add up the 3 points before and after the center with the center
+        }
+        //stroke(rgb(0,0,0));
+        //line(2*i, height, 2*i, height-newCases[currentState][i]*height/maxCases[currentState]);
+        
+        stroke(rgb(0,0,255));
+        if (o > 0) {
+            line(2*(i+o)+1, height, 2*(i+o)+1, height-sum/7.0*height/maxOverall);
+        } else {
+            line(2*i+1, height, 2*i+1, height-sum/7.0*height/maxOverall);
+        }
+    }
+
+    
+    textSize(20);
+    fill(rgb(255,0,0));
+    text(states[currentState], 0, 20);
+    fill(rgb(0,0,255));
+    text(states[secondState], 0, 40);
+    //println(newCases); // printing an array puts the commas back in
+    // How many new cases on the last day?
+    //println(newCases[currentDay-1]);
+
+}

@@ -1,0 +1,48 @@
+﻿// Simulation of two cars racing in a circular loop
+size(400, 400);
+noStroke();
+// distance travelled for each car (in radians)
+double car1 = 0, car2 = 0;   // location (in radians)
+double gas1 = 10, gas2 = 10; // gasoline in tank (liters?)
+boolean gassing1 = false, gassing2 = false;
+void draw() {
+    background(rgb(0,200,0));
+    fill(rgb(0,0,0));
+    ellipse(width/2,height/2,width,height);
+    fill(rgb(0,200,0));
+    ellipse(width/2,height/2,width-80,height-80);
+    //car 1 is red
+    fill(rgb(255,0,0));
+    ellipse(cos(car1)*(width/2-10)+width/2,
+            sin(car1)*(height/2-10)+height/2,      
+            20,20);
+    //car 1 is red
+    fill(rgb(0,0,255));
+    ellipse(cos(car2)*(width/2-30)+width/2,
+            sin(car2)*(height/2-30)+height/2,      
+            20,20);
+    // To speed up the simulation to see if the car ever gets stuck, you can run more than one step at a time.
+    // You can experiment with some of the rules below.
+    // Run 10 steps of the simulation    for (int i = 0; i < 10; i++) {
+        if (car1 > 2*PI) {
+            car1 = car1 - 2*PI;
+        }
+        if (car2 > 2*PI) {
+            car2 = car2 - 2*PI;
+        }
+        if (car1 < 0.2 && (gassing1 || gas1 < 4)) { // when are in our pitstop area and low on gas
+            gas1 = gas1 + 0.1;
+            gassing1 = gas1 < 10; // gassing as long as not full tank
+        } else if (gas1 > 0) {
+            car1 = car1 + 0.1;
+            gas1 = gas1 - 0.02;
+        } // else car 1 is stuck
+        if (car2 < 0.2 && (gassing2 || gas2 < 4)) { // when are in our pitstop area and low on gas
+            gas2 = gas2 + 0.1;
+            gassing2  = gas2 < 10; // gassing as long as not full tank
+        } else if (gas2 > 0) {
+            car2 = car2 + 0.09;
+            gas2 = gas2 - 0.015;
+        } // else car 2 is stuck
+    // }
+}

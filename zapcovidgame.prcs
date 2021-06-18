@@ -1,0 +1,110 @@
+﻿// Generate a random number between the first and second numbers provided.
+// The number is a double (but we can convert it to an int)
+// The number will never quite be as large as the second number
+// first <= generated < second
+int first = 3, second = 5;
+int myrandom = (int)random(first, second); // random(3, 4) cast to int (rounds toward zero)
+println(myrandom);
+
+// Coronavirus disinfection game
+// NOTE: This game is not medically accurate!
+// Please follow public health guidelines!
+
+size(500, 400);
+textSize(20);
+noStroke();
+
+boolean isShooting = false;
+double clickX = -1, clickY = -1;
+double currentX = -1, currentY = -1;
+double startX = width/2, startY = height;
+
+int viruses = 3;
+
+int score = 0, lives = 5;
+
+double[] virusX = new double[10], virusY = new double[10], 
+virusDX = new double[10], virusDY = new double[10];
+
+double speed = 1;
+
+void setupVirus(int i) {
+    virusX[i] = random(0, width);
+    virusY[i] = 0; // start at top
+    virusDX[i] = random(-1, 1);
+    virusDY[i] = random(1, 2);
+}
+
+for (int i = 0; i < viruses; i++) {
+    setupVirus(i);
+}
+
+void virus(double x, double y, double s) {
+    fill(rgb(198,52,52)); // red corona spikes
+    for (int i = 0; i < 20; i++) {
+        // Draw a spike as a wedge from the center
+        arc(x, y, s*1.2, s*1.2, i*4*PI/40, (i+0.5)*4*PI/40, PIE);
+    }
+
+    fill(rgb(148,148,148)); // body of virus is gray
+    ellipse(x, y, s, s);
+
+}
+
+void mousePressed() {
+    if (!isShooting) {
+        isShooting = true;
+        clickX = mouseX;
+        clickY = mouseY;
+        currentX = startX;
+        currentY = startY;
+        // Shoot a line toward clickX and clickY...
+    }
+}
+
+void draw() {
+    background(rgb(255,255,255));
+    if (lives < 0) {
+        textSize(40);
+        fill(rgb((int)random(0,256),(int)random(0,256),(int)random(0,256)));
+        text("GAME OVER", width/4, height/2);
+        return; // Don't play the game!
+    }
+    for (int i = 0; i < viruses; i++) {
+        double dx = (virusX[i] - currentX);
+        double dy = (virusY[i] - currentY);
+        if (sqrt(dx*dx + dy*dy) < 25) {
+            // Hit the virus!
+            setupVirus(i);
+            isShooting = false;
+            score = score + 100;
+        }
+        virus(virusX[i], virusY[i], 50);
+        virusX[i] = virusX[i] + virusDX[i]*speed;
+        if (virusX[i] < 0 || virusX[i] > width) {
+            virusDX[i] = -virusDX[i];
+        }
+        if (virusY[i] > height) {
+            setupVirus(i);
+            lives = lives - 1;
+        }
+        virusY[i] = virusY[i] + virusDY[i]*speed;
+    }
+    if (isShooting) {
+        // Advance the line toward the clicked point...
+        currentX = currentX + (clickX-startX)/60;
+        currentY = currentY + (clickY-startY)/60;
+        if (currentX < 0 || currentX > width || currentY < 0) {
+            isShooting = false;
+        }
+        stroke(rgb(0,0,0));
+        line(startX, startY, currentX, currentY);
+        noStroke();
+    }
+    
+    // Draw score and lives
+    fill(rgb(0,0,0));
+    text(""+score, 0, 20);
+    text(""+lives, width-100, 20);
+    speed = frameCount / 600.0 + 1;
+}

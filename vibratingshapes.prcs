@@ -1,0 +1,121 @@
+﻿// Draw a bunch of random shapes
+// We can store the information using arrays,
+// but each shape has a different way of storing its information.
+// 1. Circle has a center and a diameter... (3 doubles)
+// 2. Rectangle has a upper left, width, and height... (4 doubles)
+// 3. Triangle has 6 points (6 doubles)
+
+// Different options to store the shape information in an array?
+// 1: Give each shape the same amount of space (but some need more space than others)
+// 2: Use exactly the right amount of space (we'll have to go through the list to find the shapes)
+// 3: Use a separate array for each shape type
+// Advantage of 3 is that we also know the kind of information.
+// For 1 or 2, we have to also somehow store the "kind" of shape
+// Let's say we want to store 100 random shapes.
+// We can't just resize an array, we have to create a new array and copy the information.
+// For option 3, we could say that we have 33 of each shape...
+// 5 * n is the "average" amount of storage (3+4+6)/3
+// Central Limit Theorem tells us that we will usually be close to the average, but not always!
+
+int desiredShapeCount = 100;
+size(800, 500);
+// For each shape, start by storing its designation (1 for circle, 2 for rect, 3 for triangle)
+// followed by numbers for the parameters specified above.
+double[] shapeStorage = new double[16*desiredShapeCount/3+1]; // Close to 100 shapes (but maybe less)
+
+double m = 0.25;
+
+int shapeCount = 0;
+// Fill shapeStorage with random shapes
+for (int i = 0; i < shapeStorage.length; i++) {
+    // Put one shape into shapeStorage in this loop iteration
+    // First, we figure out what shape we're creating!
+    int shapeType = (int)(random(1, 4)); // this will be 1, 2, or 3 (really!)
+    // The remainder of the array after the last shape will be 0s
+    // (Therfore, the shape type will be 0)
+    if (shapeType == 1) {
+        // Storing a circle (3 numbers)
+        if (i+3 >= shapeStorage.length) {
+            break; // We can't store the circle!
+        }
+        shapeStorage[i] = shapeType;
+        shapeStorage[i+1] = random(0, width);// random x coordinate
+        shapeStorage[i+2] = random(0, height);// random y coordinate
+        shapeStorage[i+3] = random(10, min(width, height)*m);// random diameter (up to half of screen size)
+        i = i + 3; // i++ in the for loop will move to the next empty spot
+    } else if (shapeType == 2) {
+        // Storing a rectangle (4 numbers)
+        if (i+4 >= shapeStorage.length) {
+            break; // We can't store the rectangle!
+        }
+        shapeStorage[i] = shapeType;
+        shapeStorage[i+1] = random(0, width);// random x coordinate
+        shapeStorage[i+2] = random(0, height);// random y coordinate
+        shapeStorage[i+3] = random(10, width*m);// random width (up to half of screen width)
+        shapeStorage[i+4] = random(10, height*m);// random height
+        i = i + 4; // i++ in the for loop will move to the next empty spot
+    } else if (shapeType == 3) {
+        // Storing a triangle
+        if (i+6 >= shapeStorage.length) {
+            break; // We can't store the triangle!
+        }
+        shapeStorage[i] = shapeType;
+        shapeStorage[i+1] = random(0, width);// random x coordinate
+        shapeStorage[i+2] = random(0, height);// random y coordinate
+        shapeStorage[i+3] = shapeStorage[i+1] + random(-m*width, m*width);// random x coordinate
+        shapeStorage[i+4] = shapeStorage[i+2] + random(-m*height, m*height);// random y coordinate
+        shapeStorage[i+5] = shapeStorage[i+3] + random(-m*width, m*width);// random x coordinate
+        shapeStorage[i+6] = shapeStorage[i+4] + random(-m*height, m*height);// random y coordinate
+        i = i + 6; // i++ in the for loop will move to the next empty spot
+    } else {
+        // Some kind of error!!!
+        println("Error: shape type "+shapeType);
+        break; // Exit the for loop (since we had an error)
+    }
+    shapeCount = shapeCount + 1;
+}
+println(shapeCount+" shapes");
+double d = 2;
+void draw() {
+    background(rgb(0,0,0)); // black background
+    int hue = 0;
+    for (int i = 0; i < shapeStorage.length; i++) {
+        fill(hsv(hue, 0.5, 1));
+        hue = hue + 3;
+        // Put one shape into shapeStorage in this loop iteration
+        // First, we figure out what shape we're drawing!
+        double shapeType = shapeStorage[i];
+        // The remainder of the array after the last shape will be 0s
+        // (Therfore, the shape type will be 0)
+        if (shapeType == 1) {
+            // Drawing a circle (3 numbers)
+            ellipse(shapeStorage[i+1], shapeStorage[i+2], shapeStorage[i+3], shapeStorage[i+3]);
+            shapeStorage[i+1] = shapeStorage[i+1] + random(-d, d);
+            shapeStorage[i+2] = shapeStorage[i+2] + random(-d, d);
+            i = i + 3; // i++ in the for loop will move to the next empty spot
+        } else if (shapeType == 2) {
+            // Drawing a rectangle (4 numbers)
+            rect(shapeStorage[i+1], shapeStorage[i+2],shapeStorage[i+3],shapeStorage[i+4]);
+            shapeStorage[i+1] = shapeStorage[i+1] + random(-d, d);
+            shapeStorage[i+2] = shapeStorage[i+2] + random(-d, d);
+            i = i + 4; // i++ in the for loop will move to the next empty spot
+        } else if (shapeType == 3) {
+            // Drawing a triangle
+            triangle(shapeStorage[i+1], shapeStorage[i+2],shapeStorage[i+3],
+                     shapeStorage[i+4],shapeStorage[i+5],shapeStorage[i+6]);
+            shapeStorage[i+1] = shapeStorage[i+1] + random(-d, d);
+            shapeStorage[i+2] = shapeStorage[i+2] + random(-d, d);
+            shapeStorage[i+3] = shapeStorage[i+3] + random(-d, d);
+            shapeStorage[i+4] = shapeStorage[i+4] + random(-d, d);
+            shapeStorage[i+5] = shapeStorage[i+5] + random(-d, d);
+            shapeStorage[i+6] = shapeStorage[i+6] + random(-d, d);
+            i = i + 6; // i++ in the for loop will move to the next empty spot
+        } else if (shapeType == 0) {
+            break; // End of shape array
+        } else {
+            // Some kind of error!!!
+            println("Error: shape type "+shapeType);
+            break; // Exit the for loop (since we had an error)
+        }
+    }
+}

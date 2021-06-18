@@ -1,0 +1,76 @@
+﻿// We saw the rain example where droplets of rain were all drawn on top of each other.
+// What if we would like to simulate a bunch of bouncing balls?
+// The bouncing balls could start in random locations and have random velocities.
+// They would have elastic collisions with the walls...
+// And each other? (Not simulated)
+
+size(500, 400);
+
+// Each bouncing ball has an x and a y coordinate.
+// There are n balls.
+int n = 50;
+int speed = 10;
+// We are using a separate array for each coordinate.
+// Declaring them at the same time (same statement) may indicate that they are related.
+double[] x = new double[n], y = new double[n], dx = new double[n], dy = new double[n];
+
+double[] extra = x; // extra is an extra reference to the same array as the x variable
+// Usually we don't want to do this!
+
+// fill an array a with random values between minValue and maxValue
+void fillRandom(double[] a, double minValue, double maxValue) {
+    for (int i = 0; i < a.length; i = i + 1) {
+        // i starts at 0 and goes 1, 2, 3, ..., length-1
+        a[i] = random(minValue, maxValue);
+    }
+}
+
+// Fill in the arrays with random values
+fillRandom(x, 0, width);
+fillRandom(y, 0, height);
+fillRandom(dx, -speed, speed);
+fillRandom(dy, -speed, speed);
+
+// We could make all the balls go the same speed.
+for (int i = 0; i < n; i++) {
+    // How fast is ball i going?
+    // Use the Pythagorean Theorem
+    // a^2 + b^2 = c^2
+    // a*a + b*b = c*c
+    // Solve for c: c = square root(a*a + b*b)
+    //    /|
+    // c / | a (dy)
+    //  /__|
+    //    b (dx)
+    
+    double c = sqrt(dy[i]*dy[i] + dx[i]*dx[i]);
+    // c is not equal to speed, probably...
+    // what can we do to make it equal to speed? Multiply it by something.
+    // c * ? = speed      Solve for ?
+    // ? = speed / c
+    
+    double speedMult = speed / c;
+    dy[i] = dy[i] * speedMult;
+    dx[i] = dx[i] * speedMult;
+    // We can see that now all the calculated speeds are ~speed (example 10)
+    //println(sqrt(dy[i]*dy[i] + dx[i]*dx[i]));
+    
+}
+
+void draw() {
+    background(rgb(0,0,0));
+    // Draw all the balls...
+    for (int i = 0; i < n; i++) {
+        ellipse(x[i], y[i], 10, 10);
+        // Move each ball after we draw it
+        x[i] = x[i] + dx[i];
+        y[i] = y[i] + dy[i];
+        // Bounce each ball
+        if (x[i] < 0 || x[i] > width) {
+            dx[i] = -dx[i];
+        }
+        if (y[i] < 0 || y[i] > height) {
+            dy[i] = -dy[i];
+        }
+    }    
+}

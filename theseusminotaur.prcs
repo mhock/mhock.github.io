@@ -1,0 +1,223 @@
+﻿// Implementation of Theseus and the Minotaur game
+// https://en.wikipedia.org/wiki/Theseus_and_the_Minotaur
+// You are the blue circle and minotaur is the red circle.
+// Clicking next to your circle will move one space.
+// The minotaur moves two spaces after you move one space.
+// The minotaur prefers moving horizontally to moving vertically
+// and won't take a step to get farther away from your circle.
+// As soon as you step outside the maze, you win!
+
+
+// Add constants to indicate walls in a cell in the maze,
+// player, and minotaur
+int L = 1, R = 2, T = 4, B = 8, M = 16, P = 32;
+int[][] board =
+{{L+T+B+M,    T,    T,T,    R,L+T+R},
+ {    T+L,  R+B,    L,R,L+R+B,L+R},
+ {    L+R,L+T+R,L+B+R,L,T+B+P,R}, // fill this in!!
+ {    L+R,    L,  T+B,R,  L+T,R},
+ {    L+R,  L+R,  L+T,0,    0,R},
+ {    L+B,    B,    B,B,    B,B+R}
+};
+int th = 6, ht = 3; // thickness of maze in pixels, half thickness
+int mg = 20; // margin around edge in pixels
+
+int px = -999, py = -999; // will be updated below 
+int mx = -99, my = -99;
+
+boolean won = false; // Haven't won yet!
+
+size(board[0].length*50+2*mg,board.length*50+2*mg);
+noStroke();
+
+// Do something when you win?
+
+void mousePressed() {
+    if (mx == px && my == py || won) {
+        return; // game over!
+    }
+    // Figure out which square was clicked
+    int cx = (int)((mouseX-mg) / 50);
+    int cy = (int)((mouseY-mg) / 50);
+    // Normalize cx and cy (only one square at a time)
+    if (cx != px) {
+        cx = (cx-px)/abs(cx-px) +px;
+    }
+    if (cy != py) {
+        cy = (cy-py)/abs(cy-py) +py;
+    }
+    if (mouseY-mg < 0) {
+        // Exiting on the top
+        // See if we are next to exit
+        // If so, we win
+        if (py == 0 && board[px][py] % (2*T) <T) {
+            // We have won!
+            won = true;
+            return;
+        }
+    }
+    // We can only move to a square which is 
+    // next to our current square (above, below, left, right)
+    if (abs(cx-px) + abs(cy-py) != 1) {
+        return; // can't move here!
+    }
+    // Check for walls!
+    // Determine direction...
+    if (cx - px == 1) {
+        // Moved to right
+        if (board[py][px] % (2*R) >= R) { // right wall
+            // Sees if an R is in the board location
+            // by getting rid of all the bits after R
+            // and then seeing if it still contains R
+            return; // Can't move right.
+        }
+    }
+    if (cx - px == -1) {
+        // Moved to left
+        if (board[py][px] % (2*L) >= L) { // left wall
+            return; // Can't move left.
+        }
+    }
+    if (cy - py == 1) {
+        // Moved down
+        if (board[py][px] % (2*B) >= B) { // bottom wall
+            return; // Can't move down.
+        }
+    }
+    if (cy - py == -1) {
+        // Moved up
+        if (board[py][px] % (2*T) >= T) { // top wall
+            return; // Can't move up.
+        }
+    }
+    // We are allowed to move...
+    // The ordering of the board array is row, column (y, x)
+    board[py][px] = board[py][px] - P; // remove player
+    board[cy][cx] = board[cy][cx] + P; // add player
+
+    // Player is now in the cx, cy position
+    px = cx;
+    py = cy; // update player location
+    // Then, the minotaur moves two steps toward the player
+    // Try moving horizontally first...
+    for (int i = 0; i < 2; i++) { // two steps
+        if (mx != px) {
+            if (mx > px) {
+                // Wants to move left
+                if (board[my][mx] % (2*L) < L) { // no left wall
+                    // -= shorthand for variable = variable - expr
+                    board[my][mx] -= M; // remove minotaur
+                    board[my][mx-1] += M;
+                    mx--;
+                    continue; // Moved left, continue moving
+                }
+
+            } else {
+                // Must want to move right
+                if (board[my][mx] % (2*R) < R) { // no right wall
+                    board[my][mx] -= M; // remove minotaur
+                    board[my][mx+1] += M;
+                    mx++;
+                    continue; // Moved right
+                }
+            }
+        }
+
+        if (my != py) {
+            if (my > py) {
+                // Wants to move up
+                if (board[my][mx] % (2*T) < T) { // no top wall
+                    board[my][mx] -= M; // remove minotaur
+                    board[my-1][mx] += M;
+                    my--;
+                    continue; // Moved up
+                }
+
+            } else {
+                // Must want to move down
+                if (board[my][mx] % (2*B) < B) { // no bottom wall
+                    board[my][mx] -= M; // remove minotaur
+                    board[my+1][mx] += M;
+                    my++;
+                    continue; // Moved down
+                }
+            }
+        }
+    }
+}
+
+textSize(40); // quadruple size
+
+void draw() {
+    if (mx == px && my == py) {
+        // You lose!
+        background(rgb(255,0,0));
+    } else if (won) {
+        background(rgb(0,255,0));
+    } else {
+        background(rgb(255,255,255));
+    }
+    fill(rgb(200, 200, 200));
+    for (int x = 0; x < width; x = x + 50) {
+        rect(x-ht+mg, mg, th, height-2*mg);
+    }
+    for (int y = 0; y < height; y = y + 50) {
+        rect(mg, y-ht+mg, width-2*mg, th);
+    }
+    for (int i = 0; i < board.length; i++) {
+        for (int j = 0; j < board[i].length; j++) {
+            // Draw the four walls
+            int square = board[i][j];
+            if (square >= P) {
+                // Square has a player
+                px = j;
+                py = i; // Set player coordinates
+                if (!won) {
+                    fill(rgb(0,0,255));
+                    ellipse(j*50+25+mg,i*50+25+mg,50-2*th,50-2*th);
+                }
+                square = square - P; // get rid of player
+            }
+            if (square >= M) {
+                // Square has a minotaur
+                mx = j;
+                my = i;
+                fill(rgb(255,0,0));
+                ellipse(j*50+25+mg,i*50+25+mg,50-2*th,50-2*th);
+                square = square - M; // get rid of minotaur
+            }
+            if (square >= B) {
+                // wall on bottom
+                fill(rgb(0,0,0));
+                rect(j*50+mg,(i+1)*50-ht+mg,50,th); // 10 px
+                square = square - B;
+            }
+            if (square >= T) {
+                // wall on top
+                fill(rgb(0,0,0));
+                rect(j*50+mg,i*50-ht+mg,50,th); // 10 px
+                square = square - T;
+            }
+            if (square >= R) {
+                // wall on right
+                fill(rgb(0,0,0));
+                rect((j+1)*50-ht+mg,i*50+mg,th,50); // 10 px
+                square = square - R;
+            }
+            if (square >= L) {
+                // wall on left
+                fill(rgb(0,0,0));
+                rect(j*50-ht+mg,i*50+mg,th,50); // 10 px
+                square = square - L;
+            }
+
+        }
+    }
+    fill(rgb(255,255,255));
+    
+    if (mx == px && my == py) {
+        text("You lose!", width/2-40*2, height/2); // lower left corner pixel of text baseline (bottom of most letters)
+    } else if (won) {
+        text("You won!", width/2-40*2, height/2); // lower left corner pixel of text baseline (bottom of most letters)
+    }
+}

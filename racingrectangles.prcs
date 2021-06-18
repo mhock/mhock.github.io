@@ -1,0 +1,42 @@
+﻿// Several racing rectangles
+// Each rectangle has a random color, x, y, width, height, speed
+// Rectangles that start farther ahead are slower
+// Speed changes randomly to add suspense
+// When a rectangle wins, the background shows the winner
+
+int n = 30; // Number of rectangles
+
+size(1000, 400);
+
+color[] c = new color[n];
+double[] x = new double[n], y = new double[n], w = new double[n], h = new double[n], dx = new double[n];
+
+for (int i = 0; i < n; i++) { // i visits all the indexes in the array
+    // Fill in color array with random colors
+    // We must use the (int) cast because color requires an int
+    // The (int) cast throws away decimal part (rounds toward 0): example 1.99 -> 1, -.75 -> 0
+    c[i] = rgb((int)random(0, 256), (int)random(0, 256), (int)random(0, 256));
+    
+    x[i] = random(0, width/2);
+    h[i] = random(3, height/10);
+    w[i] = random(3, width/10);
+    y[i] = random(0, height-h[i]); // rectangle shouldn't be off bottom of screen
+    double maxSpeed =  (width-(x[i]+w[i]))/400; // if all rectangles had this speed, they would tie
+    dx[i] = random(maxSpeed*3/4, maxSpeed); // adjust based on start?
+}
+noStroke();
+color bg = rgb(0,0,0);
+void draw() {
+    background(bg); // black background
+    for (int i = 0; i < n; i++) { // i visits all the indexes in the array
+        fill(c[i]);
+        rect(x[i], y[i], w[i], h[i]);
+        x[i] = x[i] + dx[i]; // Move rectangle
+        // See if rectangle now won?
+        if (bg == rgb(0,0,0) && x[i]+w[i] > width) {
+            bg = c[i];
+        }
+        // Velocity may change?
+        dx[i] = max(0, dx[i] + random(-0.25, 0.25));
+    }
+}

@@ -1,0 +1,80 @@
+﻿// We want to do a "runner" game.
+// (Dinosaur browser game)
+// First, let's decide how many objects (cacti) can appear at a time.
+
+int n = 8; // 4 cacti at a time...
+
+size(800, 400);
+
+// horizontal coordinate, width, and height of each cactus
+double[] x = new double[n], w = new double[n], h = new double[n];
+
+// dino's y coordinate (distance from ground) and speed
+double y = 0, dy = 0;
+// dino constants
+int dinoX = 20, dinoW = 20, dinoH = 40;
+// where is the ground?
+int groundY = 350;
+
+void mousePressed() {
+    // Make dino jump
+    dy = 10;
+}
+
+void draw() {
+    background(rgb(255,255,255));
+    stroke(rgb(0,0,0)); // black line for ground
+    line(0,groundY, width, groundY);
+    noStroke();
+    fill(rgb(151,85,53)); // dino brown
+    rect(dinoX, groundY - y - dinoH, dinoW, dinoH);
+    y = y + dy;
+    if (y > 0) {
+        // dino in air
+        dy = dy - .5; // gravity
+    } else {
+        // dino not in the air
+        y = 0; // can't go below ground
+        dy = 0; // don't move if at 0
+    }
+    
+    // Maybe a cactus appears?
+    if (random(0, 1) < .02) { // 1% chance every frame
+        // Put a new cactus into the cactus array.. but where?
+        // Find a zero width cactus...
+        for (int i = 0; i < n; i++) {
+            if (w[i] == 0) {
+                // index i has zero width
+                // let's replace it with a real cactus
+                w[i] = random(20, 40);
+                h[i] = random(40, 80);
+                x[i] = width; // start at right side
+                break; // get out of the loop - only one cactus at a time!
+            }
+        }
+    }
+    
+    // Draw and move the cactuses!
+    fill(rgb(94,215,64)); // cactus green
+    for (int i = 0; i < n; i++) {
+        if (w[i] > 0) {
+            // Is the cactus touching the dino?
+            // Does the cactus rectangle intersect the dino rectangle
+            // If the left edge of the cactus is before the right edge of the dino
+            // And the right edge of the cactus is after the left edge of the dino
+            // And the top edge of the cactus is above the bottom edge of the dino
+            if (x[i] < dinoX + dinoW && x[i] + w[i] > dinoX && h[i] > y) {
+                background(rgb(255,0,0));
+            }
+            // Draw the real cactus
+            rect(x[i], groundY-h[i], w[i], h[i]);
+            // Move the cactus
+            x[i] = x[i] - 5;
+            // If the cactus is off the left side of the screen...
+            if (x[i] + w[i] < 0) {
+                w[i] = 0; // zero width cactuses don't exist!
+            }
+        }
+    }
+    
+}
