@@ -13,3 +13,4 @@
 - [Theseus and the Minotaur](theseusminotaur.prcs)
 - [Zap Covid](zapcovidgame.prcs)
 - [Covid Visualization](covidvisualization.prcs)
+- [Rotating Cube](rotatingcube.prcs)
