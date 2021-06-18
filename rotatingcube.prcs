@@ -1,0 +1,136 @@
+﻿// The following code was adapted from https://rosettacode.org/wiki/Draw_a_rotating_cube#Java
+// Rosetta Code website
+// License: Content is available under GNU Free Documentation License 1.2 
+// https://www.gnu.org/licenses/old-licenses/fdl-1.2.html
+// 
+double[][] nodes = {{-100, -100, -100}, 
+                    {-100, -100, 100}, 
+                    {-100, 100, -100}, 
+                    {-100, 100, 100},
+                    {100, -100, -100}, 
+                    {100, -100, 100}, 
+                    {100, 100, -100}, 
+                    {100, 100, 100}};
+
+int[][] edges = {{0, 1}, {1, 3}, {3, 2}, {2, 0}, 
+                 {4, 5}, {5, 7}, {7, 6}, {6, 4},
+                 {0, 4}, {1, 5}, {2, 6}, {3, 7}};
+
+int[][] faces = {{0,2,3,1},{0,4,5,1},{0,4,6,2},
+                 {6,4,5,7},{6,7,3,2},{7,5,1,3}};
+
+// We could bundle 4 edges into a face
+// 6 faces of the code
+
+size(500, 400);
+
+void rotateCube(double angleX, double angleY) {
+    double sinX = sin(angleX);
+    double cosX = cos(angleX);
+
+    double sinY = sin(angleY);
+    double cosY = cos(angleY);
+
+    for (int i = 0; i < nodes.length; i = i+1) {
+        double x = nodes[i][0];
+        double y = nodes[i][1];
+        double z = nodes[i][2];
+
+        nodes[i][0] = x * cosX - z * sinX;
+        nodes[i][2] = z * cosX + x * sinX;
+
+        z = nodes[i][2];
+
+        nodes[i][1] = y * cosY - z * sinY;
+        nodes[i][2] = z * cosY + y * sinY;
+    }
+}
+
+
+rotateCube(PI / 4, atan(sqrt(2)));
+
+
+void drawCube() {
+    // "Let's just move everything over..."
+    // Use variables to move everything over.
+    double dx = width / 2, dy = height / 2;
+
+
+
+    for (int i = 0; i < edges.length; i = i + 1) { 
+        double[] xy1 = nodes[edges[i][0]]; 
+        double[] xy2 = nodes[edges[i][1]];
+        line( dx+round(xy1[0]), dy+round(xy1[1]),
+             dx+round(xy2[0]), dy+round(xy2[1]));
+    }
+
+    for (int i = 0; i < nodes.length; i = i+1) {
+        //ellipse(dx+round(nodes[i][0]), dy+round(nodes[i][1]), 8, 8);
+        fill(rgb(0,0,0));
+        text(toString(i), dx+round(nodes[i][0]), dy+round(nodes[i][1]));
+    }
+}
+
+boolean drawBefore(int i, int j) {
+    // if i's average z (centroid of face) is greater than j's average z,
+    // i must be drawn before (behind) j
+    
+    double iAvgZTimes4 = nodes[faces[i][0]][2]+ nodes[faces[i][1]][2]+nodes[faces[i][2]][2]+ nodes[faces[i][3]][2];
+    double jAvgZTimes4 = nodes[faces[j][0]][2]+ nodes[faces[j][1]][2]+nodes[faces[j][2]][2]+ nodes[faces[j][3]][2];
+    return iAvgZTimes4 >= jAvgZTimes4;
+}
+
+void drawCubeFaces() {
+    // "Let's just move everything over..."
+    // Use variables to move everything over.
+    double dx = width / 2, dy = height / 2;
+
+    // We can sort the faces by the smallest z coordinate [2]
+    // of any node in the face (but draw largest smallest z coord first...)
+    // is that correct??? I think so.
+
+    // Mini-array of one element is sorted with respect to itself
+    
+    for (int i = 1; i < faces.length; i = i + 1) { // a[i] is the element we are inserting into the mini array a[0..i]
+        for (int j = i-1; j >= 0 && drawBefore(j+1, j); j--) {
+            int[] tmp = faces[j+1];
+            faces[j+1] = faces[j];
+            faces[j] = tmp;
+        }
+    }
+  
+
+    for (int i = 0; i < faces.length; i = i + 1) { // switch to faces to draw quads
+        // Each face has a different sum
+        // The multiplier "pseudorandomizes" that sum and % 360 keeps it in the range 0-359
+        // This ends up creating a reasonable "rainbow" of faces that remains stable
+        // even though the faces move around
+        fill(hsv(((faces[i][0]+faces[i][1]+faces[i][2]+faces[i][3])*9999979)%360,1,1));
+        // must draw faces from back to front :(
+        // z buffer on a video card does this automatically
+
+        double[] xy1 = nodes[faces[i][0]]; // switch to faces to draw quads
+        double[] xy2 = nodes[faces[i][1]]; // switch to faces to draw quads
+        double[] xy3 = nodes[faces[i][2]];
+        double[] xy4 = nodes[faces[i][3]];
+        quad( dx+round(xy1[0]), dy+round(xy1[1]),
+                   dx+round(xy2[0]), dy+round(xy2[1]),
+                   dx+round(xy3[0]), dy+round(xy3[1]),
+                   dx+round(xy4[0]), dy+round(xy4[1]));
+    }
+
+    for (int i = 0; i < nodes.length; i = i+1) {
+        //ellipse(dx+round(nodes[i][0]), dy+round(nodes[i][1]), 8, 8);
+        fill(rgb(0,0,0));
+        text(toString(i), dx+round(nodes[i][0]), dy+round(nodes[i][1]));
+    }
+}
+
+
+void draw() {
+    background(rgb(255,255,255));
+
+    rotateCube(PI / 180, PI/360);
+    drawCubeFaces();
+
+}
